@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>pi-progress-tree</title>
+    <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
+    <!--  Build Date: Fri May 30 2014 22:46:09 GMT-0600 (MDT) -->
+    
+    <script type="text/javascript">
+        var APP_BUILD_DATE = "Fri May 30 2014 22:46:09 GMT-0600 (MDT)";
+        var CHECKSUM = [%= checksum %];
+    </script>
+    
+    <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function() {
+            
+            
+               Rally.launchApp('CustomApp', {
+                   name: 'pi-progress-tree'
+               });
+        });
+    </script>
+    
+    <style type="text/css">
+
+.app {
+}
+.tsinfolink {
+    position:absolute;
+    right:0px;
+    width:5%;
+}
+
+.x-tree-icon { display: none !important; }
+
+.x-column-header {
+    border-bottom-color: rgb(34, 34, 34);
+    border-bottom-style: solid;
+    border-bottom-width: 4px;
+    border-top-style: none;
+}
+.x-panel-default, .x-grid-header-ct, .yes-harmonized .x-panel-body-default  {
+    border-color: #fff;
+}
+
+.x-grid-cell-inner {
+    font-family: NotoSans, Helvetica, Arial;
+    font-size: 12px;
+}
+
+    
+.yes-harmonized .rally-grid.x-grid .x-grid-header-ct .x-box-inner {
+    border-bottom: none;
+}
+   body {
+            overflow-y: auto !important;
+        }
+        
+        .app {
+            margin: 10px 30px;
+        }
+        
+        .app > .leftSide {
+            float: left;
+            width: 45%;
+        }
+        
+        .app > .rightSide {
+            float: right;
+            width: 45%;
+        }
+        
+        h1 {
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        .grayLabel {
+            color: #888;
+            margin: 5px 15px;
+        }
+        
+        
+        .percentDoneContainer {
+            height: 15px;
+            line-height: 15px;
+        }
+        
+        .planEstimate {
+            width: 20px;
+            height: 20px;
+            border: 1px dotted #5C9ACB;
+            text-align: center;
+            margin-right: 4px;
+            position: absolute;
+            top: 5px;
+            right: 3px;
+        }   
+    </style>
+
+</head>
+<body></body>
+</html>
