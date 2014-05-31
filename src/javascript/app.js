@@ -3,8 +3,7 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
     items: [
-        {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
-        {xtype:'container',itemId:'display_box'} 
+         {xtype:'container',itemId:'display_box'} 
         /*,
         {xtype:'tsinfolink'}
         */
@@ -176,32 +175,8 @@ Ext.define('CustomApp', {
         }
        
        var children = me._getChildren(id, data_hash);
-       console.log(children);
        tree_obj['children'] = children;
-       console.log(tree_obj['Name'],tree_obj['FormattedID'],obj.get('DirectChildrenCount'));
-       if (obj.get('DirectChildrenCount')>0){
-            tree_obj['leaf'] = false;
-
-            console.log('after children' , tree_obj['children'], tree_obj);
-            //Calculate Rollups
-            
-//            Ext.Array.each(tree_obj['children'], function(child){
-//            var cumulative_estimate = 0;
-//            var cumulative_completed = 0; 
-//                for (var i=0; i<me.iterations.length; i++){
-//                    var sum = tree_obj[me._getRollupEstimatedField(i)] + child[me._getRollupEstimatedField(i)];
-//                    cumulative_estimate = cumulative_estimate + sum; 
-//                    tree_obj[me._getRollupEstimatedField(i)] = cumulative_estimate;//sum;
-//
-//                    sum = tree_obj[me._getRollupCompletedField(i)] + child[me._getRollupCompletedField(i)];
-//                    cumulative_completed = cumulative_completed + sum;  
-//                    tree_obj[me._getRollupCompletedField(i)] = cumulative_completed; //sum;
-//                    console.log(me._getIterationName(i),tree_obj['Name'], tree_obj['FormattedID'], tree_obj[me._getRollupEstimatedField(i)],tree_obj[me._getRollupCompletedField(i)],child['Name'], child[me._getRollupEstimatedField(i)],child[me._getRollupCompletedField(i)]);
-//                }
-//            });
-        } else {
-            tree_obj['leaf'] = true;
-        }
+       tree_obj['leaf'] = (!obj.get('DirectChildrenCount')>0);
         this._calculateRollups(tree_obj,'iteration');
         return tree_obj; 
     },
@@ -221,7 +196,6 @@ Ext.define('CustomApp', {
         } else if (obj.get('UserStories') && obj.get('UserStories').length > 0){
             child_obj_ids = obj.get('UserStories');
         }
-        console.log('_getChildren', child_obj_ids);
         Ext.Array.each(child_obj_ids, function(child_id){
             var child_obj = me._populateObject(child_id,data_hash);
             children.push(child_obj);
@@ -279,9 +253,8 @@ Ext.define('CustomApp', {
                 });
                 if (i==me.iterations.length-1) total_estimated = total_estimated + object_tree[me._getRollupEstimatedField(i)];
             }
-            console.log(object_tree['Name'],'toal_estimated',total_estimated);
-         
-        if (calculation == 'total'){
+
+            if (calculation == 'total'){
             for (var i=0; i< me.iterations.length; i++){
                 object_tree[me._getRollupEstimatedField(i)]=total_estimated;
             }
@@ -316,7 +289,6 @@ Ext.define('CustomApp', {
         this.logger.log('_buildTreeStore');
         var me = this;  
         var topLevelObjects = this._getTopLevelObjectIds(data);
-        console.log('_buildTreeStore',topLevelObjects,data);
         var tree_nodes = {};
         
         this._loadDetailData(topLevelObjects, new Date()).then({
@@ -334,7 +306,6 @@ Ext.define('CustomApp', {
                        children: tree_nodes
                        }
                });
-               console.log('before buildtree');
                me._buildTree(treeStore); 
             },
             failure: function(error){
@@ -347,7 +318,6 @@ Ext.define('CustomApp', {
     _buildTree: function(tree_store){
         this.logger.log('_buildTree');
         var me = this;
-        console.log(tree_store);
 
         var tree_columns = me._getTreeColumns();
         me.down('#display_box').add({
@@ -386,7 +356,6 @@ Ext.define('CustomApp', {
                     itemId:column_index + '_column',
                     width: 100,
                     renderer: function(value,meta_data,record) {
-                        console.log (record.get('Name'),record.get('_RollupEstimated_' + value),record.get('_RollupCompleted_' + value))
                         return Ext.create('Rally.technicalservices.ProgressBarTemplate',{
                                 numeratorField: '_RollupCompleted_' + value,
                                 denominatorField: '_RollupEstimated_' + value,
@@ -410,7 +379,6 @@ Ext.define('CustomApp', {
         this.logger.log('_loadIterations');
         var deferred = Ext.create('Deft.Deferred');
 
-        console.log(releaseStartDate, releaseEndDate);
         Ext.create('Rally.data.wsapi.Store',{
             model: 'Iteration',
             autoLoad: true,
