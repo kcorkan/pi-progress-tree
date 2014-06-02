@@ -8,12 +8,13 @@ Ext.define('CustomApp', {
         {xtype:'tsinfolink'}
         */
     ],
+    calculation_type: 'total', //'total', //cumulative, iteration
     iterations: [],
     completed_state_values: ['Accepted','Completed'],
     completed_state_field: 'ScheduleState',
     estimate_field: 'PlanEstimate',
     launch: function() {
-        
+
         this.cb_release = this.down('#display_box').add({
             xtype: 'rallyreleasecombobox',
             scope:this,
@@ -24,6 +25,7 @@ Ext.define('CustomApp', {
                 change: this._updateRelease
             } 
         });
+        
    },
    _updateRelease: function(cb, newValue, oldValue){
        this.logger.log('_updateRelease', newValue, oldValue);
@@ -78,6 +80,7 @@ Ext.define('CustomApp', {
        
    
     },
+    
     _getTopLevelObjectIds: function(data){
         this.logger.log('_getTopLevelObjectIds');
         var topLevelObjectIDs = []; 
@@ -140,6 +143,9 @@ Ext.define('CustomApp', {
         }
         return -1;
     }, 
+    _getCalculationType: function(){
+        return this.calculation_type;
+    },
     _populateObject: function(id,data_hash){
         this.logger.log('_populateObject', id);
         var me = this;
@@ -177,7 +183,7 @@ Ext.define('CustomApp', {
        var children = me._getChildren(id, data_hash);
        tree_obj['children'] = children;
        tree_obj['leaf'] = (!obj.get('DirectChildrenCount')>0);
-        this._calculateRollups(tree_obj,'iteration');
+       this._calculateRollups(tree_obj,this._getCalculationType());
         return tree_obj; 
     },
     _getChildren: function(parent_id,data_hash){
@@ -203,6 +209,7 @@ Ext.define('CustomApp', {
         
         return children; 
     },
+
     _buildTreeNodeDataStructure: function(detail_data,topLevelObjectIds){
         this.logger.log('_buildTreeNodeDataStructure',detail_data,topLevelObjectIds);
         var me = this; 
@@ -221,8 +228,6 @@ Ext.define('CustomApp', {
         return topLevelObjects;
     },
     _calculateRollups: function(object_tree, calculation){
-        calculation='total';
-        var cumulative_completed = 0; //cumulative total for each  iteration 
         var me = this;
         
         var children = object_tree['children'];
@@ -230,37 +235,35 @@ Ext.define('CustomApp', {
             return; 
         }
 
-           // me._calculateRollups(child);
-            cumulative_estimated = 0;
-            total_estimated = 0;
-            for(var i=0; i<me.iterations.length; i++){
-                var iteration_estimated = 0;
-                var iteration_completed=0;
-                Ext.Array.each(children, function(child){
-                    if (child.leaf == false || calculation == 'iteration'){
-                        iteration_estimated = iteration_estimated + child[me._getRollupEstimatedField(i)];
-                        iteration_completed = iteration_completed + child[me._getRollupCompletedField(i)];
+        var cumulative_completed = 0; //cumulative total for each  iteration 
+        var cumulative_estimated = 0;
+        var total_estimated = 0;
+        for(var i=0; i<me.iterations.length; i++){
+            var iteration_estimated = 0;
+            var iteration_completed=0;
+            Ext.Array.each(children, function(child){
+                if (child.leaf == false || calculation == 'iteration'){
+                    iteration_estimated = iteration_estimated + child[me._getRollupEstimatedField(i)];
+                    iteration_completed = iteration_completed + child[me._getRollupCompletedField(i)];
 
-                        object_tree[me._getRollupEstimatedField(i)] = iteration_estimated;
-                        object_tree[me._getRollupCompletedField(i)] = iteration_completed;
-                    } else {  // for leaf children when doing cumulative roll ups
-                        cumulative_estimated = cumulative_estimated + child[me._getRollupEstimatedField(i)];
-                        cumulative_completed = cumulative_completed + child[me._getRollupCompletedField(i)];
-                        
-                        object_tree[me._getRollupEstimatedField(i)] = cumulative_estimated;
-                        object_tree[me._getRollupCompletedField(i)] = cumulative_completed;
-                    }                    
-                });
-                if (i==me.iterations.length-1) total_estimated = total_estimated + object_tree[me._getRollupEstimatedField(i)];
-            }
+                    object_tree[me._getRollupEstimatedField(i)] = iteration_estimated;
+                    object_tree[me._getRollupCompletedField(i)] = iteration_completed;
+                } else {  // for leaf children when doing cumulative roll ups
+                    cumulative_estimated = cumulative_estimated + child[me._getRollupEstimatedField(i)];
+                    cumulative_completed = cumulative_completed + child[me._getRollupCompletedField(i)];
+                    
+                    object_tree[me._getRollupEstimatedField(i)] = cumulative_estimated;
+                    object_tree[me._getRollupCompletedField(i)] = cumulative_completed;
+                }                    
+            });
+            if (i==me.iterations.length-1) total_estimated = total_estimated + object_tree[me._getRollupEstimatedField(i)];
+        }
 
-            if (calculation == 'total'){
+        if (calculation == 'total'){
             for (var i=0; i< me.iterations.length; i++){
                 object_tree[me._getRollupEstimatedField(i)]=total_estimated;
             }
         }
-
-        
     },
     _defineFieldModel: function(){
         this.logger.log('_defineFieldModel');
@@ -282,7 +285,7 @@ Ext.define('CustomApp', {
             fields: fields
         };
         me.logger.log("Made a model using these fields: ", fields);
-        return model; ;
+        return model;
     },
     
     _buildTreeStore: function(data){
@@ -318,11 +321,16 @@ Ext.define('CustomApp', {
     _buildTree: function(tree_store){
         this.logger.log('_buildTree');
         var me = this;
+        
+        if (me.down('#pi-progress-tree')){
+            me.down('#pi-progress-tree').destroy();
+        }
 
         var tree_columns = me._getTreeColumns();
         me.down('#display_box').add({
             scope:this,
             xtype:'treepanel',
+            itemId: 'pi-progress-tree',
             store: tree_store,
             rootVisible: false,
             autoLoad: true,
