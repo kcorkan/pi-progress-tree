@@ -156,7 +156,7 @@ Ext.define('CustomApp', {
         return '_RollupCompleted_' + this._getIterationKey(index);
     },
     _getIterationName: function(index){
-        return this.iterations[index][0] + "<br>" + this.iterations[index][3] + "<br>" + this.iterations[index][1];
+        return  this.iterations[index][3] + "<br>" + this.iterations[index][1];
     },
     _getIterationKey: function(index){
         return 'I' + this.iterations[index][0];
