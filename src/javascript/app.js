@@ -10,7 +10,7 @@ Ext.define('CustomApp', {
     ],
     calculation_type: 'total', //'total', //cumulative, iteration
     iterations: [],
-    completed_state_values: ['accepted','completed'],
+    completed_state_values: ['accepted'],
     completed_state_field: 'ScheduleState',
     estimate_field: 'PlanEstimate',
     launch: function() {
@@ -129,7 +129,7 @@ Ext.define('CustomApp', {
                 scope: this,
                 load: function(store, data, success){
                     if (success){
-                        me.logger.log('_loadStoryDetailData',data.length);
+                        me.logger.log('_loadStoryDetailData',data);
                         deferred.resolve(data);
                     } else {
                         me.logger.log('_loadStoryDetailData failure');
@@ -138,7 +138,7 @@ Ext.define('CustomApp', {
                 }
             },
             autoLoad: true,
-            fetch: ['Name','FormattedID','ObjectID','_ItemHierarchy',me.estimate_field,me.completed_state_field,'Iteration','Release','Epic','Feature','PortfolioItem','Parent','_TypeHierarchy'],
+            fetch: ['Name','FormattedID','ObjectID','_ItemHierarchy',me.estimate_field,me.completed_state_field,'Iteration','Release','PortfolioItem','Parent','_TypeHierarchy'],
             hydrate: [me.completed_state_field,'_TypeHierarchy'],
             find: {
                 "_ItemHierarchy": {$in: epics},
@@ -239,7 +239,9 @@ Ext.define('CustomApp', {
         me.logger.log('_rollupStories', obj['ObjectID'], obj['FormattedID'],story_data);
         var total_estimated = 0;
         Ext.Array.each(story_data, function(sd){
+            
             var sd_data = sd.getData();
+            console.log(sd_data.FormattedID, 'Parent', sd_data.Parent, 'PortfolioItem', sd_data.PortfolioItem, sd_data._ItemHierarchy);
             var belongsToFeature = Ext.Array.contains(sd_data._ItemHierarchy, obj['ObjectID']);
             if (belongsToFeature){
                 var iteration_index = me._getIterationIndex(sd_data.Iteration);  //Move this down below if we want all estimates for feature, even if they aren't in current iterations
@@ -248,6 +250,8 @@ Ext.define('CustomApp', {
                     if (me._isCompleted(sd_data.ScheduleState)){
                         obj[me._getRollupCompletedField(iteration_index)] = obj[me._getRollupCompletedField(iteration_index)] + sd_data.PlanEstimate;
                    }
+                } else {
+                    total_estimated = total_estimated + sd_data.PlanEstimate;
                 }
             }
         });
